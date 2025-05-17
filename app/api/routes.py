@@ -46,6 +46,7 @@ def search_businesses(
 
 @router.get("/business/{tin}", response_model=PPPDetailedRecordOut)
 def get_business_by_tin(tin: str, db: Session = Depends(get_db)):
+    logger.info(f"Fetching business details for TIN: {tin}")
     record = db.query(PPPRecordDB).filter(PPPRecordDB.loannumber == tin).first()
     if not record:
         raise HTTPException(status_code=404, detail="Business not found")
