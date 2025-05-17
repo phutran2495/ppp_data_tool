@@ -3,8 +3,8 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 
 # Load from environment or fallback default
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:Password123!@getbismart-db-cluster.cluster-ccauumjcjayl.us-west-1.rds.amazonaws.com:5432/applevel-development")
-
+# DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:Password123!@getbismart-db-cluster.cluster-ccauumjcjayl.us-west-1.rds.amazonaws.com:5432/applevel-development")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/ppp_db")
 # Create SQLAlchemy engine
 engine = create_engine(DATABASE_URL)
 
@@ -16,5 +16,5 @@ Base = declarative_base()
 
 def init_db():
     """Create the database tables."""
-    from db.models import PPPRecordDB  # Import models here to avoid circular imports
+    from db.models import PPPRecordDB  
     Base.metadata.create_all(bind=engine)

@@ -1,6 +1,8 @@
 from db.database import SessionLocal
 from db.models import PPPRecordDB
 import pandas as pd
+from services.logger import get_logger
+logger = get_logger()
 
 def insert_ppp_records(df: pd.DataFrame):
     session = SessionLocal()
@@ -14,10 +16,10 @@ def insert_ppp_records(df: pd.DataFrame):
 
         session.add_all(rows)
         session.commit()
-        print(f"✅ Inserted {len(rows)} records into ppp_loans.")
+        logger.info(f"✅ Inserted {len(rows)} records into ppp_loans.")
     except Exception as e:
         session.rollback()
-        raise RuntimeError(f"❌ Failed to insert records: {e}")
+        raise RuntimeError(f"❌ Failed to insert records")
     finally:
-        print("Closing session...")
+        logger.info("Closing session...")
         session.close()

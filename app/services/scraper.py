@@ -2,7 +2,9 @@ import asyncio
 from pathlib import Path
 from playwright.async_api import async_playwright
 import aiohttp
+from services.logger import get_logger
 
+logger = get_logger()
 # Define download directory
 DOWNLOAD_DIR = Path("./tmp/downloads")
 DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -12,7 +14,7 @@ async def download_ppp_csv() -> Path:
         browser = await p.chromium.launch(headless=True)
         context = await browser.new_context(accept_downloads=True)
         page = await context.new_page()
-        print("Navigating to SBA PPP FOIA dataset page...")
+        logger.info("Navigating to SBA PPP FOIA dataset page...")
         await page.goto("https://data.sba.gov/organization/")
         await page.wait_for_selector('a[href="/dataset/"]')
         await page.click('a[href="/dataset/"]')
@@ -23,7 +25,7 @@ async def download_ppp_csv() -> Path:
         await page.wait_for_selector('a[href="/dataset/ppp-foia"]')
         await page.click('a[href="/dataset/ppp-foia"]')
         # Click one of the CSV links — e.g., the first CSV link in the resource section
-        print("Navigating to first CSV resource page...")
+        logger.info("Navigating to first CSV resource page...")
         # Wait for the resource links to load
         # Wait for the resource links to load
         await page.wait_for_selector('section.resources a')
@@ -37,17 +39,17 @@ async def download_ppp_csv() -> Path:
             href = await link.get_attribute("href")
             if href and ".csv" in href:
                 csv_link = href
-                print(f"➡️ Found CSV download link: {href}")
+                logger.info(f"➡️ Found CSV download link: {href}")
                 break
 
         await browser.close()
 
         if not csv_link:
-            print("❌ No CSV download link found.")
+            logger.info("❌ No CSV download link found.")
             return
             
         # Download the CSV file
-        print("Initiating download of the CSV file...")
+        logger.info("Initiating download of the CSV file...")
         async with aiohttp.ClientSession() as session:
             async with session.get(csv_link) as response:
                 if response.status == 200:
@@ -59,9 +61,10 @@ async def download_ppp_csv() -> Path:
                             if not chunk:
                                 break
                             f.write(chunk)
-                    print(f"✅ CSV file downloaded to: {saved_path}")
+                    logger.info(f"✅ CSV file downloaded to: {saved_path}")
                 else:
-                    print(f"❌ Failed to download CSV file. Status code: {response.status}")
+                    logger.info(f"❌ Failed to download CSV file. Status code: {response.status}")
+                    raise Exception(f"Failed to download CSV file. Status code: {response.status}")
 
         return saved_path
 
@@ -71,7 +74,7 @@ async def download_ppp_dictionary() -> Path:
         context = await browser.new_context(accept_downloads=True)
         page = await context.new_page()
 
-        print("Navigating to SBA PPP FOIA dataset page...")
+        logger.info("Navigating to SBA PPP FOIA dataset page...")
         await page.goto("https://data.sba.gov/organization/")
         await page.wait_for_selector('a[href="/dataset/"]')
         await page.click('a[href="/dataset/"]')
@@ -82,7 +85,7 @@ async def download_ppp_dictionary() -> Path:
         await page.wait_for_selector('a[href="/dataset/ppp-foia"]')
         await page.click('a[href="/dataset/ppp-foia"]')
         await page.click('a[title="PPP Data Dictionary.xlsx"]')
-        print("Initiating download of the PPP Data Dictionary...")
+        logger.info("Initiating download of the PPP Data Dictionary...")
         async with page.expect_download() as download_info:
             await page.click("text=Download")
         download = await download_info.value
@@ -90,7 +93,7 @@ async def download_ppp_dictionary() -> Path:
         save_path = DOWNLOAD_DIR / download.suggested_filename
         await download.save_as(str(save_path))
 
-        print(f"✅ File downloaded to: {save_path}")
+        logger.info(f"✅ File downloaded to: {save_path}")
         await browser.close()
         return save_path
 
@@ -101,8 +104,8 @@ async def main():
         download_ppp_csv(),
         download_ppp_dictionary()
     )
-    print(f"Downloaded CSV file path: {csv_file}")
-    print(f"Downloaded Dictionary file path: {dictionary_file}")
+    logger.info(f"Downloaded CSV file path: {csv_file}")
+    logger.info(f"Downloaded Dictionary file path: {dictionary_file}")
 
 if __name__ == "__main__":
     asyncio.run(main())

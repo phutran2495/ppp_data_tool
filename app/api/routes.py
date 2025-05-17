@@ -8,29 +8,16 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from db.models import PPPRecordDB, Base
 from datetime import datetime
-
+from api.schemas import PPPRecordOut, PPPDetailedRecordOut
 from pydantic import BaseModel, Field
 from typing import Optional
-
-class PPPRecordOut(BaseModel):
-    tin: Optional[str] = Field(alias="loannumber")  # maps loannumber from DB to tin in API
-    borrowername: Optional[str]
-    borroweraddress: Optional[str]
-    borrowercity: Optional[str]
-    borrowerstate: Optional[str]
-    borrowerzip: Optional[str]
-    loanstatus: Optional[str]
-    initialapprovalamount: Optional[float]
-    forgivenessamount: Optional[float]
-    forgivenessdate: Optional[datetime]
-
-    class Config:
-        orm_mode = True
-        allow_population_by_field_name = True
+from services.logger import get_logger
 
 router = APIRouter()
 
 init_db()
+logger = get_logger()
+
 
 def get_db():
     db = Session(engine)
@@ -47,7 +34,7 @@ def search_businesses(
     city: str = Query(None),
     db: Session = Depends(get_db)
 ):
-    print(f"Searching for businesses with name: {name}, state: {state}, city: {city}")
+    logger.info(f"Searching for businesses with name: {name}, state: {state}, city: {city}")
     query = db.query(PPPRecordDB).filter(PPPRecordDB.borrowername.ilike(f"%{name}%"))
     if state:
         query = query.filter(PPPRecordDB.borrowerstate == state)
@@ -57,7 +44,7 @@ def search_businesses(
     results = query.limit(50).all()
     return results
 
-@router.get("/business/{tin}", response_model=PPPRecordOut)
+@router.get("/business/{tin}", response_model=PPPDetailedRecordOut)
 def get_business_by_tin(tin: str, db: Session = Depends(get_db)):
     record = db.query(PPPRecordDB).filter(PPPRecordDB.loannumber == tin).first()
     if not record:
@@ -70,12 +57,12 @@ def get_business_by_tin(tin: str, db: Session = Depends(get_db)):
 async def load_ppp_data():
     try:
         # Step 1: Download files
-        print("Step 1: Downloading files...")
+        logger.info("Step 1: Downloading files...")
         csv_path, dict_path = await asyncio.gather(
             download_ppp_csv(),
             download_ppp_dictionary()
         )
-        print("Step 2 Load and validate...")
+        logger.info("Step 2 Load and validate...")
         # Step 2: Load and validate
         df = load_ppp_csv(csv_path)
         schema_valid = validate_schema(df, dict_path)
@@ -83,11 +70,12 @@ async def load_ppp_data():
             raise HTTPException(status_code=400, detail="Schema validation failed.")
 
         # Step 3: Clean and insert
-        print("Step 3 : Cleaning and inserting data...")
+        logger.info("Step 3 : Cleaning and inserting data...")
         df_cleaned = clean_ppp_data(df)
 
         insert_ppp_records(df_cleaned)
 
         return {"message": "✅ Data loaded into PostgreSQL", "rows": len(df_cleaned)}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"❌ Failed to load data: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"❌ Failed to load data: {repr(e)}")
+

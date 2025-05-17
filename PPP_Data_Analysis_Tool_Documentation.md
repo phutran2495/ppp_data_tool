@@ -28,18 +28,15 @@ It serves as a demonstration of end-to-end data engineering with:
 ## 🔍 Design Decisions
 
 ### 🗓 Web Scraping
-- Users can triggger scrapping the data via the GET /load endpoint, even though a separate script can be used for webscraping, turning it into an endpoint for simplicity and ease-of-use 
-- Used **Playwright** to navigate and interact with [https://data.sba.gov/organization](https://data.sba.gov/organization).
+- Used **Playwright** to navigate and interact with [https://data.sba.gov/organization](https://data.sba.gov/organization) due to JavaScript-rendered content.
 - Programmatically locates and downloads the PPP FOIA CSV data and the data dictionary Excel file.
-- Playwrite fetches the csv link and Python will make http call to the link to download the content via AIOHTTP library
-- the PPP FOIA CSV dataset and the data dictionary Excel file will be loaded in the tmp/downloads folder for staging and debuging purposes, though they can be loaded into memory directly
 
 ### 📊 Data Validation & Cleaning
 - The CSV is parsed using **pandas**.
 - Data is validated by comparing columns against the downloaded **data dictionary**.
 - Missing or incorrectly typed values are coerced and handled.
 - Datetime and numeric conversions are handled gracefully.
-- Final dataset is limited to 10,000 rows to optimize load performance.
+- Final dataset is limited to 30,000 rows to optimize load performance.
 
 ### 🚚 PostgreSQL Integration
 - Tables are created automatically using SQLAlchemy's `Base.metadata.create_all()`.
@@ -48,9 +45,9 @@ It serves as a demonstration of end-to-end data engineering with:
 
 ### 👩‍💻 API Development
 - `/load`: Triggers scraping, processing, and loading into the DB
-- `/search?name=...`: Search businesses by name, with optional filters for city and state
-- `/business/{tin}`: Get business info by TIN (loannumber)
-- Query performance is improved by indexing searchable fields in the database: loannumber, city, state
+- `/search?name=...`: Search businesses by name, with optional filters
+- `/business/{tin}`: Get business info by TIN
+- Query performance is improved by indexing searchable fields
 
 ---
 
@@ -60,6 +57,33 @@ It serves as a demonstration of end-to-end data engineering with:
 ```bash
 docker-compose up --build
 ```
+
+### 📂 Project Structure
+```
+app/
+├── main.py                # FastAPI entry point
+├── db/
+│   ├── models.py          # SQLAlchemy models
+│   └── database.py        # DB engine & session
+├── services/
+│   ├── scraper.py         # Playwright scraping logic
+│   ├── processor.py       # CSV cleaning/validation
+│   └── loader.py          # Data insertion logic
+├── api/
+│   └── routes.py          # FastAPI endpoints
+├── pyproject.toml         # uv dependency manager
+├── uv.lock                # Locked dependency versions
+Dockerfile                 # FastAPI Docker build
+docker-compose.yml         # App + PostgreSQL
+```
+
+### 🗂 Environment Variables
+Inside `docker-compose.yml`, FastAPI uses:
+```
+DATABASE_URL=postgresql://postgres:postgres@db:5432/ppp_db
+```
+
+You can override this via `.env` if needed.
 
 ---
 

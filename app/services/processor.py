@@ -1,17 +1,20 @@
 import pandas as pd
 import numpy as np
+from services.logger import get_logger
+
+logger = get_logger()
 
 def load_ppp_csv(csv_path: str) -> pd.DataFrame:
     try:
-        print("Loading PPP CSV...")
-        df = pd.read_csv(csv_path, dtype=str, low_memory=False, encoding="utf-8")
-        print(f"✅ Loaded PPP CSV with {len(df)} rows and {len(df.columns)} columns.")
+        logger.info("Loading PPP CSV...")
+        df = pd.read_csv(csv_path, dtype=str, encoding="utf-8")
+        logger.info(f"✅ Loaded PPP CSV with {len(df)} rows and {len(df.columns)} columns.")
         return df.head(10000)  # Limit to 10,000 rows for testing
     except UnicodeDecodeError:
-        print("⚠️ UTF-8 decoding failed. Trying ISO-8859-1 encoding...")
+        logger.info("⚠️ UTF-8 decoding failed. Trying ISO-8859-1 encoding...")
         try:
-            df = pd.read_csv(csv_path, dtype=str, low_memory=False, encoding="ISO-8859-1")
-            print(f"✅ Loaded PPP CSV with fallback encoding. Rows: {len(df)} Columns: {len(df.columns)}")
+            df = pd.read_csv(csv_path, dtype=str, encoding="ISO-8859-1")
+            logger.info(f"✅ Loaded PPP CSV with fallback encoding. Rows: {len(df)} Columns: {len(df.columns)}")
             return df.head(10000)  # Limit to 10,000 rows for testing
         except Exception as e:
             raise RuntimeError(f"❌ Failed to load CSV with fallback encoding: {e}")
@@ -24,10 +27,10 @@ def validate_schema(csv_df: pd.DataFrame, dict_path: str) -> list:
     missing = [col for col in expected_columns if col not in csv_df.columns]
     
     if missing:
-        print(f"❌ CSV is missing {len(missing)} column(s): {missing}")
+        logger.info(f"❌ CSV is missing {len(missing)} column(s): {missing}")
         return False
 
-    print("✅ CSV matches the data dictionary schema.")
+    logger.info("✅ CSV matches the data dictionary schema.")
     
     return True
 
@@ -52,5 +55,5 @@ def clean_ppp_data(df: pd.DataFrame) -> pd.DataFrame:
         if col in df.columns:
             df[col] = pd.to_datetime(df[col], errors="coerce")
     df = df.replace({pd.NaT: None, np.nan: None, "NaT": None})
-    print("✅ Cleaned and formatted data.")
+    logger.info("✅ Cleaned and formatted data.")
     return df

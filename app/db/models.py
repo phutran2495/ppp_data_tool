@@ -9,10 +9,10 @@ class PPPRecordDB(Base):
     dateapproved = Column(DateTime, comment="Loan Funded Date")
     sbaofficecode = Column(String, comment="SBA Origination Office Code")
     processingmethod = Column(String, comment="Loan Delivery Method (PPP for first draw; PPS for second draw)")
-    borrowername = Column(String, index =True, comment="Borrower Name")
+    borrowername = Column(String, index =True, comment="Borrower Name") # Indexed for faster search
     borroweraddress = Column(String, comment="Borrower Street Address")
-    borrowercity = Column(String, comment="Borrower City")
-    borrowerstate = Column(String, comment="Borrower State")
+    borrowercity = Column(String, index= True, comment="Borrower City") # Indexed for faster search
+    borrowerstate = Column(String, index= True, comment="Borrower State") # Indexed for faster search
     borrowerzip = Column(String, comment="Borrower Zip Code")
     loanstatusdate = Column(DateTime, comment="Loan Status Date - Loan Status Date is  blank when the loan is disbursed but not Paid In Full or Charged Off")
     loanstatus = Column(String, comment="Loan Status Description - Loan Status is replaced by 'Exemption 4' when the loan is disbursed but not Paid in Full or Charged Off")

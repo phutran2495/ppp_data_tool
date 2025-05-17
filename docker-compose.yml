@@ -1,33 +1,32 @@
-# docker-compose.yml
-
-version: '3.9'
+version: "3.9"
 
 services:
-  web:
-    build: .
-    container_name: ppp_app
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastapi_app
     ports:
       - "8000:8000"
-    env_file:
-      - .env
     depends_on:
       - db
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/ppp_db
     volumes:
-      - ./app:/app
-    restart: always
+      - ./app:/app  # optional for live reload during dev
 
   db:
-    image: postgres:14
-    container_name: ppp_db
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
     environment:
-      POSTGRES_USER: ppp_user
-      POSTGRES_PASSWORD: ppp_pass
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: ppp_db
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
-    restart: always
+      - pg_data:/var/lib/postgresql/data
 
 volumes:
-  pgdata:
+  pg_data:
