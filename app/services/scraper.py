@@ -14,7 +14,7 @@ async def download_ppp_csv() -> Path:
         browser = await p.chromium.launch(headless=True)
         context = await browser.new_context(accept_downloads=True)
         page = await context.new_page()
-        logger.info("Navigating to SBA PPP FOIA dataset page...")
+        logger.info("Fetching CSV file from SBA website")
         await page.goto("https://data.sba.gov/organization/")
         await page.wait_for_selector('a[href="/dataset/"]')
         await page.click('a[href="/dataset/"]')
@@ -74,7 +74,7 @@ async def download_ppp_dictionary() -> Path:
         context = await browser.new_context(accept_downloads=True)
         page = await context.new_page()
 
-        logger.info("Navigating to SBA PPP FOIA dataset page...")
+        logger.info("Fetching PPP Data Dictionary from SBA website")
         await page.goto("https://data.sba.gov/organization/")
         await page.wait_for_selector('a[href="/dataset/"]')
         await page.click('a[href="/dataset/"]')

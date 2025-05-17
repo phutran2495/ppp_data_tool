@@ -19,7 +19,7 @@ def insert_ppp_records(df: pd.DataFrame):
         logger.info(f"✅ Inserted {len(rows)} records into ppp_loans.")
     except Exception as e:
         session.rollback()
-        raise RuntimeError(f"❌ Failed to insert records")
+        raise RuntimeError(f"❌ Failed to insert records into the ppp_loans table probably records already exist")
     finally:
         logger.info("Closing session...")
         session.close()
