@@ -28,5 +28,16 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
 
+  frontend:
+      build:
+        context: ./ppp-frontend
+        dockerfile: ../Frontend-Dockerfile
+      container_name: ppp_frontend
+      ports:
+        - "3000:80"
+      depends_on:
+        - db
+        - fastapi
+      restart: always
 volumes:
   pg_data:

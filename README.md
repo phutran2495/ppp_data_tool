@@ -58,6 +58,14 @@ It showcases an end-to-end data engineering workflow involving:
 - `/business/{tin}`: Returns business details for a given TIN (Tax Identification Number, aka `LoanNumber`).
 - Performance is improved via SQL indexes on searchable fields: `borrowername`, `borrowercity`, and `borrowerstate`.
 
+## 🧑‍💻 Frontend Functionality
+
+The frontend provides an easy-to-use interface for interacting with the API:
+
+- **Load PPP Data** – Triggers the backend scraping and loads new records into PostgreSQL.
+- **Search Businesses** – Allows searching by business name, city, or state.
+- **View Details** – Clicking a result shows detailed business info fetched from the backend.
+
 ---
 
 ## 🔧 Setup Instructions
@@ -66,3 +74,9 @@ It showcases an end-to-end data engineering workflow involving:
 
 ```bash
 docker-compose up --build
+```
+
+### 🔗 Access URLs
+	•	**Frontend UI**: http://localhost:3000
+	•	**Backend API**: http://localhost:8000
+	•	**Swagger UI**: http://localhost:8000/docs

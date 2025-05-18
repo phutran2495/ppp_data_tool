@@ -78,5 +78,5 @@ async def load_ppp_data():
 
         return {"message": "✅ Data loaded into PostgreSQL", "rows": len(df_cleaned)}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"❌ Failed to load data: {repr(e)}")
+        raise HTTPException(status_code=400, detail=f"❌ Failed to load data: {repr(e)}")
 

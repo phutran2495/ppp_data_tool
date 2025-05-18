@@ -1,0 +1,19 @@
+# Use Node.js for building and serving the frontend
+FROM node:18-alpine AS build
+
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm install
+COPY . .
+
+# Ensure Vite has execution permissions 
+RUN chmod +x node_modules/.bin/vite
+
+# Build the frontend
+RUN npm run build
+RUN ls -l /app/dist
+
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
